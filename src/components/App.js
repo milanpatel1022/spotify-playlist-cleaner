@@ -65,20 +65,26 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>Spotify React</h1>
+      <div className="header">
+        <h1>Friendlier</h1>
+        <h2>An easy way to create clean versions of your Spotify playlists.</h2>
+      </div>
+      <div className="body">
         {!token ? (
           <a
             href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`}
+            className="button"
           >
-            Login to Spotify
+            LOGIN TO SPOTIFY
           </a>
         ) : (
           <>
-            <button onClick={logout}>Logout</button>
+            <button className="button" onClick={logout}>
+              LOGOUT
+            </button>
           </>
         )}
-      </header>
+      </div>
     </div>
   );
 }
