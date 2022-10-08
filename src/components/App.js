@@ -53,6 +53,7 @@ function App() {
         }
       );
       console.log(data);
+      setPlaylists(data);
     };
 
     getPlaylists();
@@ -68,8 +69,6 @@ function App() {
       <div className="header">
         <h1>Friendlier</h1>
         <h2>An easy way to create clean versions of your Spotify playlists.</h2>
-      </div>
-      <div className="body">
         {!token ? (
           <a
             href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`}
@@ -78,13 +77,16 @@ function App() {
             LOGIN TO SPOTIFY
           </a>
         ) : (
-          <>
-            <button className="button" onClick={logout}>
-              LOGOUT
-            </button>
-          </>
+          <button className="button" onClick={logout}>
+            LOGOUT
+          </button>
         )}
       </div>
+      {token ? (
+        <div className="body">
+          <Playlist playlists={playlists} />
+        </div>
+      ) : null}
     </div>
   );
 }
