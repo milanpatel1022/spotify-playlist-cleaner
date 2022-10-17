@@ -1,18 +1,35 @@
 import axios from "axios"; //axios will help us handle HTTP requests to Spotify API
 import { useEffect, useState } from "react";
+import DataTable from "react-data-table-component";
 
 export function Playlist(props) {
-  const token = props.token;
+  // const token = props.token;
+
+  const columns = [
+    {
+      name: "Your Playlists",
+      selector: (row) => row.name,
+    },
+  ];
+
+  const data = props.playlists;
+
+  console.log("hi", data);
 
   return (
-    <div>
-      <ul className="list-group">
-        <li className="list-group-item active">Cras justo odio</li>
-        <li className="list-group-item">Dapibus ac facilisis in</li>
-        <li className="list-group-item">Morbi leo risus</li>
-        <li className="list-group-item">Porta ac consectetur ac</li>
-        <li className="list-group-item">Vestibulum at eros</li>
-      </ul>
-    </div>
+    <DataTable
+      columns={columns}
+      data={data}
+      selectableRows
+      pagination
+      paginationComponentOptions={{ noRowsPerPage: true }}
+      paginationRowsPerPageOptions={[10]}
+    />
   );
 }
+
+/*
+      {playlists.map(function (item, i) {
+        return <option key={i}>Test</option>;
+      })}
+*/

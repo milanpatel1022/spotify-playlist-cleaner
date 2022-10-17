@@ -41,6 +41,7 @@ function App() {
     }
 
     setToken(token);
+    console.log(token);
 
     //use Axios to make GET request to Spotify's playlists endpoint
     const getPlaylists = async () => {
@@ -52,8 +53,7 @@ function App() {
           },
         }
       );
-      console.log(data);
-      setPlaylists(data);
+      setPlaylists(data.items);
     };
 
     getPlaylists();
@@ -84,7 +84,12 @@ function App() {
       </div>
       {token ? (
         <div className="body">
-          <Playlist playlists={playlists} />
+          <div className="playlist">
+            <Playlist playlists={playlists} />
+          </div>
+          <div className="convert">
+            <button>Convert</button>
+          </div>
         </div>
       ) : null}
     </div>

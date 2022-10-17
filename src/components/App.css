@@ -33,21 +33,17 @@
   transition: background-color 200ms ease-in-out;
   font-family: "Poppins", sans-serif;
   width: auto;
-  margin-top: 5%;
+  margin-top: 3%;
 }
 
 .button:hover {
   background-color: #1ed760;
+  text-decoration: none !important;
+  color: white;
 }
 
 .button:active {
   background-color: #1db954;
-}
-
-.gradient-text {
-  background-image: linear-gradient(120deg, #1db954, #191414);
-  background-clip: text;
-  color: transparent;
 }
 
 h2,
@@ -61,7 +57,20 @@ h1,
   color: #191414;
   margin: 0;
   padding: 0;
-  font-size: 2em !important;
-  font-family: "Poppins", sans-serif !important;
-  font-weight: bold !important;
+  font-size: 2em;
+  font-family: "Poppins", sans-serif;
+  font-weight: bold;
+  line-height: normal;
+}
+
+.body {
+  margin-top: 2%;
+  display: flex;
+  border: solid 3px;
+  justify-content: center;
+  align-items: center;
+}
+
+.convert {
+  justify-content: center;
 }
