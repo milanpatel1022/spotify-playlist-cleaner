@@ -9,7 +9,8 @@
 }
 
 .header {
-  text-align: center;
+  /* text-align: center; */
+  justify-content: center;
 }
 
 .button {
@@ -23,8 +24,11 @@
   display: inline-flex;
   background-color: #1db954;
   border-radius: 999px;
-  min-height: 54px;
-  min-width: 160px;
+  border: none;
+  /* min-height: 54px;
+  min-width: 160px; */
+  height: 5vh;
+  /* width: 15vw; */
   text-transform: uppercase;
   cursor: pointer;
   font-size: medium;

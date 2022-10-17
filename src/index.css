@@ -4,6 +4,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-image: url(/public/spotify_background.png);
+  background-attachment: fixed;
+  /* min-height: 100%; */
+  background-size: cover;
 }
 
 code {
