@@ -15,20 +15,15 @@ function App() {
     "playlist-read-private playlist-modify-private playlist-modify-public user-read-private";
 
   const [token, setToken] = useState(""); //state variable for the token
+
   const [playlists, setPlaylists] = useState([]); //state variable for the user's playlists
 
-  /*
-  When App Component is first loaded into DOM, useEffect is called (before 1st render)
-    -> Check if we have a hash or if we have a token saved in local storage already
-      -> If we have a token stored, set our token state variable
-      -> If we don't, check if we have a hash
-        -> If so, perform tasks on that hash (which is a string) to extract the token
-
-  */
+  //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
 
+    //if user is not already logged in, use the hash to extract the token
     if (!token && hash) {
       token = hash
         .substring(1)
@@ -40,25 +35,25 @@ function App() {
       window.localStorage.setItem("token", token);
     }
 
-    setToken(token);
-    console.log(token);
-
-    //use Axios to make GET request to Spotify's playlists endpoint
-    const getPlaylists = async () => {
-      const { data } = await axios.get(
-        "https://api.spotify.com/v1/me/playlists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setPlaylists(data.items);
-    };
-
-    getPlaylists();
+    //if the user is logged in, use Axios to make GET request to Spotify's playlists endpoint
+    if (token) {
+      const getPlaylists = async () => {
+        const { data } = await axios.get(
+          "https://api.spotify.com/v1/me/playlists",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setPlaylists(data.items); //update playlists state
+      };
+      getPlaylists();
+    }
+    setToken(token); //update token state so we know user is logged in
   }, []);
 
+  //update token state to empty and remove token from the user's browser
   const logout = () => {
     setToken("");
     window.localStorage.removeItem("token");
@@ -84,7 +79,7 @@ function App() {
       </div>
       {token ? (
         <div className="body">
-          <div className="playlist">
+          <div className="playlistTable">
             <Playlist playlists={playlists} />
           </div>
           <div className="convert">
