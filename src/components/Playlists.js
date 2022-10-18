@@ -4,32 +4,57 @@ import DataTable from "react-data-table-component";
 
 export function Playlist(props) {
   // const token = props.token;
+  const username = props.username;
 
   const columns = [
     {
-      name: "Your Playlists",
+      //if they don't have a username, just replace it with "Your"
+      name: username !== null ? `${username}'s Playlists` : "Your",
       selector: (row) => row.name,
     },
   ];
 
   const data = props.playlists;
 
-  console.log("hi", data);
+  const customStyles = {
+    table: {
+      style: {
+        border: "solid black 2px",
+      },
+    },
+    head: {
+      style: {
+        color: "#1DB954",
+        fontSize: "medium",
+        fontWeight: "bold",
+        borderBottom: "solid black 2px",
+        justifyContent: "center",
+        alignItems: "center",
+      },
+    },
+    rows: {
+      style: {
+        fontSize: "medium",
+      },
+    },
+    pagination: {
+      style: {
+        border: "solid black 2px",
+        borderTop: "none",
+      },
+    },
+  };
 
   return (
     <DataTable
       columns={columns}
       data={data}
-      selectableRows
+      selectableRows //need to add styling to these so they stay in div. they are going off screen.
+      selectableRowsSingle
       pagination
       paginationComponentOptions={{ noRowsPerPage: true }}
       paginationRowsPerPageOptions={[10]}
+      customStyles={customStyles}
     />
   );
 }
-
-/*
-      {playlists.map(function (item, i) {
-        return <option key={i}>Test</option>;
-      })}
-*/

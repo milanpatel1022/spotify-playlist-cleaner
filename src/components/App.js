@@ -18,6 +18,8 @@ function App() {
 
   const [playlists, setPlaylists] = useState([]); //state variable for the user's playlists
 
+  const [username, setUsername] = useState("Your"); //When displaying their playlists, we want to use their name
+
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
     const hash = window.location.hash;
@@ -35,7 +37,7 @@ function App() {
       window.localStorage.setItem("token", token);
     }
 
-    //if the user is logged in, use Axios to make GET request to Spotify's playlists endpoint
+    //if the user is logged in, use Axios to make GET requests to playlists and user endpoint
     if (token) {
       const getPlaylists = async () => {
         const { data } = await axios.get(
@@ -48,7 +50,17 @@ function App() {
         );
         setPlaylists(data.items); //update playlists state
       };
+
+      const getUsername = async () => {
+        const { data } = await axios.get("https://api.spotify.com/v1/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setUsername(data.display_name);
+      };
       getPlaylists();
+      getUsername();
     }
     setToken(token); //update token state so we know user is logged in
   }, []);
@@ -80,10 +92,10 @@ function App() {
       {token ? (
         <div className="body">
           <div className="playlistTable">
-            <Playlist playlists={playlists} />
+            <Playlist playlists={playlists} username={username} />
           </div>
           <div className="convert">
-            <button>Convert</button>
+            <button className="button clean">Clean Playlist</button>
           </div>
         </div>
       ) : null}

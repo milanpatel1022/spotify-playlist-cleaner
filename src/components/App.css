@@ -8,12 +8,20 @@
   text-align: center;
 }
 
+/*Need to make h1 and h2 font size responsive to view width and view height */
 .header {
   /* text-align: center; */
   justify-content: center;
+  /* white-space: nowrap; */
+  /* overflow: hidden; */
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .button {
+  /* white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; */
   -webkit-appearance: button;
   -moz-appearance: button;
   align-items: center;
@@ -24,14 +32,14 @@
   display: inline-flex;
   background-color: #1db954;
   border-radius: 999px;
-  border: none;
+  border: solid black 5%;
   /* min-height: 54px;
   min-width: 160px; */
   height: 5vh;
   /* width: 15vw; */
   text-transform: uppercase;
   cursor: pointer;
-  font-size: medium;
+  font-size: 50%;
   padding: 0 56px;
   letter-spacing: 3px;
   transition: background-color 200ms ease-in-out;
@@ -70,16 +78,29 @@ h1,
 .body {
   margin-top: 2%;
   display: flex;
-  border: solid 3px;
-  /* justify-content: center; */
+  border: solid red 3px;
+  justify-content: center;
   align-items: center;
 }
 
 .playlistTable {
-  margin-right: 5em;
+  /* margin-right: 5em; */
+  /* margin-left: 5em; */
 }
 
 .convert {
   justify-content: center;
-  margin-right: 5em;
+  /* margin-right: 5em; */
+}
+
+h3,
+.h3 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 550;
+  font-size: smaller;
+  margin-top: 1%;
+}
+
+.clean {
+  border-radius: none !important;
 }
