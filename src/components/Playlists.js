@@ -9,7 +9,8 @@ export function Playlist(props) {
   const columns = [
     {
       //if they don't have a username, just replace it with "Your"
-      name: username !== null ? `${username}'s Playlists` : "Your",
+      // name: username !== null ? `${username}'s Playlists` : "Your",
+      name: "Your Playlists",
       selector: (row) => row.name,
     },
   ];
@@ -20,12 +21,13 @@ export function Playlist(props) {
     table: {
       style: {
         border: "solid black 2px",
+        width: "295px",
       },
     },
     head: {
       style: {
         color: "#1DB954",
-        fontSize: "medium",
+        fontSize: "80%",
         fontWeight: "bold",
         borderBottom: "solid black 2px",
         justifyContent: "center",
@@ -34,7 +36,7 @@ export function Playlist(props) {
     },
     rows: {
       style: {
-        fontSize: "medium",
+        fontSize: "70%",
       },
     },
     pagination: {
