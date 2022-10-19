@@ -64,17 +64,27 @@ h1,
 }
 
 .body {
-  margin-top: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 1em;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.frost {
+  box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px);
+  min-width: 25em;
+  margin-top: 1em;
 }
 
 .playlistTable {
   display: inline-block;
-  width: 295px;
+  /* width: 295px; */
   /* margin-right: 5em; */
   /* margin-left: 5em; */
 }
@@ -91,10 +101,6 @@ h3,
   font-weight: 550;
   font-size: smaller;
   margin-top: 1%;
-}
-
-.clean {
-  border-radius: none !important;
 }
 
 .button {
@@ -126,4 +132,17 @@ h3,
   .button {
     padding: 0.25em 0.75em;
   }
+}
+
+.notSelected {
+  background-color: white;
+  pointer-events: none;
+}
+
+.notSelected:hover {
+  background-color: none;
+}
+
+.selected {
+  background-color: #1ed760;
 }

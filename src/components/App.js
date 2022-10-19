@@ -18,12 +18,15 @@ function App() {
 
   const [playlists, setPlaylists] = useState([]); //state variable for the user's playlists
 
+  const [selectedPlaylist, setSelectedPlaylist] = useState([]); //if user has made a selection
+
+  const [tracks, setTracks] = useState([]);
+
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
+    console.log(selectedPlaylist);
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
-
-    console.log(token);
 
     //if user is not already logged in, use the hash to extract the token
     if (!token && hash) {
@@ -72,6 +75,35 @@ function App() {
     window.location.href = `${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
   };
 
+  //update state when user selects a playlist
+  const handleRowSelected = (state) => {
+    setSelectedPlaylist(state.selectedRows);
+    console.log(state.selectedRows);
+  };
+
+  const getTracks = async () => {
+    //button won't work unless they select a playlist, so this is just a precaution
+    if (selectedPlaylist.length == 0) {
+      console.log("no playlist selected");
+      return;
+    }
+
+    //get all the tracks from the playlist they want to clean
+    await axios
+      .get(
+        `https://api.spotify.com/v1/playlists/${selectedPlaylist[0].id}/tracks`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        setTracks(response.data.items);
+        console.log(response.data.items);
+      });
+  };
+
   return (
     <div className="App">
       <div className="header">
@@ -88,12 +120,26 @@ function App() {
         )}
       </div>
       {token ? (
-        <div className="body">
-          <div className="playlistTable">
-            <Playlist playlists={playlists} />
-          </div>
-          <div className="convert">
-            <button className="button clean">Clean Playlist</button>
+        <div className="frost">
+          <div className="body">
+            <div className="playlistTable">
+              <Playlist
+                playlists={playlists}
+                handleRowSelected={handleRowSelected}
+              />
+            </div>
+            <div className="convert">
+              <button
+                className={`button ${
+                  selectedPlaylist.length == 0 ? "notSelected" : "selected"
+                }`}
+                onClick={getTracks}
+              >
+                {selectedPlaylist.length == 0
+                  ? "Select Playlist"
+                  : "Clean Playlist!"}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

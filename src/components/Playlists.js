@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 
 export function Playlist(props) {
-  // const token = props.token;
-  const username = props.username;
+  const [tracks, setTracks] = useState([]);
 
+  //columns for our Playlist Table
   const columns = [
     {
       //if they don't have a username, just replace it with "Your"
@@ -15,8 +15,10 @@ export function Playlist(props) {
     },
   ];
 
+  //rows for our Playlist Table
   const data = props.playlists;
 
+  //Custom styles for our Playlist Table
   const customStyles = {
     table: {
       style: {
@@ -53,6 +55,8 @@ export function Playlist(props) {
       data={data}
       selectableRows //need to add styling to these so they stay in div. they are going off screen.
       selectableRowsSingle
+      selectableRowsComponentProps={{ type: "radio" }}
+      onSelectedRowsChange={props.handleRowSelected}
       pagination
       paginationComponentOptions={{ noRowsPerPage: true }}
       paginationRowsPerPageOptions={[10]}
