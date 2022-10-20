@@ -25,9 +25,10 @@ function App() {
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
     console.log(selectedPlaylist);
+
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
-
+    console.log(token);
     //if user is not already logged in, use the hash to extract the token
     if (!token && hash) {
       token = hash
@@ -81,9 +82,97 @@ function App() {
     console.log(state.selectedRows);
   };
 
+  //we have the list of tracks. now we need to find the clean version of each one.
+  const cleanTracks = async () => {
+    const cleanedTracks = [];
+    const uncleanableTracks = []; //songs where no clean versions were found
+
+    //loop through each track
+    for (let i = 0; i < tracks.length; i++) {
+      const track = tracks[i].track;
+
+      //if the track is already clean, we don't need to look for the clean version
+      if (track.explicit === false) {
+        cleanedTracks.push(track.name);
+        continue;
+      }
+
+      const trackName = track.name;
+      const artists = new Set();
+
+      //determine artists for each track
+      for (let j = 0; j < track.artists.length; j++) {
+        artists.add(track.artists[j].name);
+      }
+
+      //if there are multiple artists, we need to comma separate them for the query
+      let artistQuery = Array.from(artists).join(",");
+
+      //now we can query Spotify's search endpoint using the track and artist names
+      let query = `query=track:${trackName} artist:${artistQuery}&type=track&limit=5`;
+
+      await axios
+        .get(`https://api.spotify.com/v1/search?${query}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          const result = response.data.tracks.items;
+
+          //using response from API, determine if clean version of song can be found
+          let found = false;
+          for (let i = 0; i < result.length; i++) {
+            if (result[i].explicit === true) {
+              //immediately skip if song is explicit
+              continue;
+            }
+
+            if (result[i].name !== trackName) {
+              //immediately skip if song names do not match
+              continue;
+            }
+
+            //determine the artists for the current song
+            const resArtists = new Set();
+            for (let j = 0; j < result[i].artists.length; j++) {
+              resArtists.add(result[i].artists[j].name);
+            }
+
+            let match = true; //boolean that tells us if all the artists match
+
+            //if an artist from original song is not in resArtists, then set flag and break
+            for (const a of artists) {
+              if (resArtists.has(a) === false) {
+                match = false;
+                break;
+              }
+            }
+
+            if (match === false) {
+              continue;
+            }
+
+            //if we have gotten to this point, we have found the clean version of the same song
+            cleanedTracks.push(result[i].name);
+            found = true;
+            break; //we don't need to keep looking through results. we can break early.
+          }
+
+          //if we have exited the for loop and didn't find a clean version, add the track to the uncleanable list
+          if (found === false) {
+            uncleanableTracks.push(trackName);
+          }
+        });
+    }
+    console.log("cleaned tracks", cleanedTracks);
+    console.log("uncleanable tracks", uncleanableTracks);
+  };
+
+  //when users select a playlist and choose to clean it, we need to get each track from the playlist
   const getTracks = async () => {
     //button won't work unless they select a playlist, so this is just a precaution
-    if (selectedPlaylist.length == 0) {
+    if (selectedPlaylist.length === 0) {
       console.log("no playlist selected");
       return;
     }
@@ -100,9 +189,17 @@ function App() {
       )
       .then((response) => {
         setTracks(response.data.items);
-        console.log(response.data.items);
       });
   };
+
+  //this useEffect will run on first render, but it won't do anything.
+  //but as soon as tracks state is updated to a nonempty list, clean those tracks
+  useEffect(() => {
+    //need to consider trying to clean empty playlist
+    if (tracks.length !== 0) {
+      cleanTracks();
+    }
+  }, [tracks]);
 
   return (
     <div className="App">
@@ -131,11 +228,11 @@ function App() {
             <div className="convert">
               <button
                 className={`button ${
-                  selectedPlaylist.length == 0 ? "notSelected" : "selected"
+                  selectedPlaylist.length === 0 ? "notSelected" : "selected"
                 }`}
                 onClick={getTracks}
               >
-                {selectedPlaylist.length == 0
+                {selectedPlaylist.length === 0
                   ? "Select Playlist"
                   : "Clean Playlist!"}
               </button>
