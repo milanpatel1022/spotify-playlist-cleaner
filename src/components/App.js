@@ -20,11 +20,15 @@ function App() {
 
   const [selectedPlaylist, setSelectedPlaylist] = useState([]); //if user has made a selection
 
-  const [tracks, setTracks] = useState([]);
+  const [tracks, setTracks] = useState([]); //when nonempty, we know we can begin cleaning tracks
+
+  const [inProgress, setInProgress] = useState(false); //lets us know if we are cleaning tracks and need to display progress bar
+
+  const [progress, setProgress] = useState(0); //our progress bar needs to know the actual progress to output correctly
 
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
-    console.log(selectedPlaylist);
+    // console.log(selectedPlaylist);
 
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
@@ -79,17 +83,20 @@ function App() {
   //update state when user selects a playlist
   const handleRowSelected = (state) => {
     setSelectedPlaylist(state.selectedRows);
-    console.log(state.selectedRows);
+    // console.log(state.selectedRows);
   };
 
   //we have the list of tracks. now we need to find the clean version of each one.
   const cleanTracks = async () => {
-    console.log("in clean tracks");
+    // console.log("in clean tracks");
     const cleanedTracks = [];
     const uncleanableTracks = []; //songs where no clean versions were found
 
+    setProgress(0);
+
     //loop through each track
     for (let i = 0; i < tracks.length; i++) {
+      setProgress(Math.round((i / tracks.length) * 100));
       const track = tracks[i].track;
 
       //if the track is already clean, we don't need to look for the clean version
@@ -109,12 +116,12 @@ function App() {
       //if there are multiple artists, we need to comma separate them for the query
       let artistQuery = Array.from(artists).join(", ");
 
-      console.log(artistQuery);
+      // console.log(artistQuery);
 
       //now we can query Spotify's search endpoint using the track and artist names
       let search = `${trackName} ${artistQuery}`;
       let query = `q=${encodeURIComponent(search)}&type=track&limit=8`;
-      console.log(query);
+      // console.log(query);
 
       await axios
         .get(`https://api.spotify.com/v1/search?${query}`, {
@@ -124,7 +131,7 @@ function App() {
         })
         .then((response) => {
           const result = response.data.tracks.items;
-          console.log(trackName, result);
+          // console.log(trackName, result);
 
           //using response from API, determine if clean version of song can be found
           let found = false;
@@ -171,6 +178,9 @@ function App() {
           }
         });
     }
+    setProgress(100);
+    setInProgress(false);
+
     console.log("cleaned tracks", cleanedTracks);
     console.log("uncleanable tracks", uncleanableTracks);
   };
@@ -182,6 +192,8 @@ function App() {
       console.log("no playlist selected");
       return;
     }
+
+    //when we begin cleaning playlist, we need to display the progress bar
 
     //get all the tracks from the playlist they want to clean
     await axios
@@ -198,12 +210,13 @@ function App() {
       });
   };
 
-  //this useEffect will run on first render, but it won't do anything.
-  //but as soon as tracks state is updated to a nonempty list, clean those tracks
+  //this useEffect will run on first render, but we make sure it doesn't do anything.
+  //how? by making sure a playlist was selected to clean. if there wasn't a selection, nothing will happen.
   useEffect(() => {
     //need to consider trying to clean empty playlist
-    if (tracks.length !== 0) {
+    if (selectedPlaylist.length !== 0) {
       cleanTracks();
+      setInProgress(true);
     }
   }, [tracks]);
 
@@ -242,6 +255,21 @@ function App() {
                   ? "Select Playlist"
                   : "Clean Playlist!"}
               </button>
+              <div className="showProgress">
+                {inProgress ? (
+                  <div className="progress">
+                    <div
+                      className="progress-bar bg-success"
+                      role="progressbar"
+                      style={{ width: `${progress}%` }}
+                      aria-valuenow="0"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    ></div>
+                  </div>
+                ) : null}
+                {progress === 100 ? "Playlist Cleaned!" : null}
+              </div>
             </div>
           </div>
         </div>
