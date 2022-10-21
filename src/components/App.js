@@ -84,6 +84,7 @@ function App() {
 
   //we have the list of tracks. now we need to find the clean version of each one.
   const cleanTracks = async () => {
+    console.log("in clean tracks");
     const cleanedTracks = [];
     const uncleanableTracks = []; //songs where no clean versions were found
 
@@ -106,10 +107,14 @@ function App() {
       }
 
       //if there are multiple artists, we need to comma separate them for the query
-      let artistQuery = Array.from(artists).join(",");
+      let artistQuery = Array.from(artists).join(", ");
+
+      console.log(artistQuery);
 
       //now we can query Spotify's search endpoint using the track and artist names
-      let query = `query=track:${trackName} artist:${artistQuery}&type=track&limit=5`;
+      let search = `${trackName} ${artistQuery}`;
+      let query = `q=${encodeURIComponent(search)}&type=track&limit=8`;
+      console.log(query);
 
       await axios
         .get(`https://api.spotify.com/v1/search?${query}`, {
@@ -119,6 +124,7 @@ function App() {
         })
         .then((response) => {
           const result = response.data.tracks.items;
+          console.log(trackName, result);
 
           //using response from API, determine if clean version of song can be found
           let found = false;
