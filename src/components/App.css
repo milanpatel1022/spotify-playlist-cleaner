@@ -18,30 +18,6 @@
   max-width: 100%;
 }
 
-/* .button {
-  -webkit-appearance: button;
-  -moz-appearance: button;
-  align-items: center;
-  justify-content: center;
-  appearance: button;
-  color: whitesmoke;
-  text-decoration: none;
-  display: inline-flex;
-  background-color: #1db954;
-  border-radius: 999px;
-  border: solid black 5%;
-  height: 5vh;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-size: 50%;
-  padding: 0 56px;
-  letter-spacing: 3px;
-  transition: background-color 200ms ease-in-out;
-  font-family: "Poppins", sans-serif;
-  width: auto;
-  margin-top: 3%;
-} */
-
 .button:hover {
   background-color: #1ed760;
 }
@@ -84,6 +60,8 @@ h1,
 
 .playlistTable {
   display: inline-block;
+  margin-right: 1em;
+  /* width: 50%; */
   /* width: 295px; */
   /* margin-right: 5em; */
   /* margin-left: 5em; */
@@ -151,4 +129,13 @@ h3,
   margin-top: 1em;
   color: white;
   font-size: medium;
+}
+
+.message {
+  margin-top: 3em;
+  font-size: 1.5em;
+}
+
+.summary {
+  /* margin-top: 1em; */
 }

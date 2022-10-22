@@ -2,6 +2,8 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import axios from "axios"; //axios will help us handle HTTP requests to Spotify API
 import { Playlist } from "./Playlists";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Popover from "react-bootstrap/Popover";
 
 function App() {
   /*Info needed to authenticate with Spotify
@@ -25,6 +27,8 @@ function App() {
   const [inProgress, setInProgress] = useState(false); //lets us know if we are cleaning tracks and need to display progress bar
 
   const [progress, setProgress] = useState(0); //our progress bar needs to know the actual progress to output correctly
+
+  const [newPlaylist, setNewPlaylist] = useState(""); //display playlist in summary
 
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
@@ -91,6 +95,8 @@ function App() {
     // console.log("in clean tracks");
     const cleanedTracks = [];
     const uncleanableTracks = []; //songs where no clean versions were found
+
+    console.log(tracks.length);
 
     setProgress(0);
 
@@ -180,12 +186,15 @@ function App() {
     }
     setProgress(100);
     setInProgress(false);
+    setNewPlaylist(selectedPlaylist[0].name);
+    setSelectedPlaylist([]);
+    setTracks([]);
 
     console.log("cleaned tracks", cleanedTracks);
     console.log("uncleanable tracks", uncleanableTracks);
   };
 
-  //when users select a playlist and choose to clean it, we need to get each track from the playlist
+  //when user selects a playlist and chooses to clean it, we need to get each track from the playlist
   const getTracks = async () => {
     //button won't work unless they select a playlist, so this is just a precaution
     if (selectedPlaylist.length === 0) {
@@ -193,21 +202,38 @@ function App() {
       return;
     }
 
-    //when we begin cleaning playlist, we need to display the progress bar
+    //API only returns 100 songs max per request. Some playlists can have more than 100 songs.
+    //So, we may need to make multiple requests. (Number of tracks in playlist / 100) rounded up is how many calls.
+    //Use an offset of 100 for each consecutive call.
 
-    //get all the tracks from the playlist they want to clean
-    await axios
-      .get(
-        `https://api.spotify.com/v1/playlists/${selectedPlaylist[0].id}/tracks`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((response) => {
-        setTracks(response.data.items);
-      });
+    let numTracks = selectedPlaylist[0].tracks.total;
+
+    let requestsNeeded = Math.ceil(numTracks / 100);
+
+    let trackList = [];
+
+    for (let i = 0; i < requestsNeeded; i++) {
+      let offset = i * 100;
+      //get all the tracks from the playlist they want to clean
+      await axios
+        .get(
+          `https://api.spotify.com/v1/playlists/${selectedPlaylist[0].id}/tracks?offset=${offset}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+        .then((response) => {
+          trackList.push(...response.data.items);
+        })
+        .catch(function (error) {
+          console.log(error);
+          window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+          setToken(""); //reset token so that user is forced to login again.
+        });
+    }
+    setTracks(trackList);
   };
 
   //this useEffect will run on first render, but we make sure it doesn't do anything.
@@ -219,6 +245,16 @@ function App() {
       setInProgress(true);
     }
   }, [tracks]);
+
+  const popover = (
+    <Popover id="popover-basic">
+      <Popover.Header as="h3">Popover right</Popover.Header>
+      <Popover.Body>
+        A clean version of your playlist has been created. {newPlaylist}{" "}
+        (clean).
+      </Popover.Body>
+    </Popover>
+  );
 
   return (
     <div className="App">
@@ -268,7 +304,18 @@ function App() {
                     ></div>
                   </div>
                 ) : null}
-                {progress === 100 ? "Playlist Cleaned!" : null}
+                {progress === 100 ? (
+                  <div className="completed">
+                    <div className="message">Playlist Cleaned!</div>
+                    <OverlayTrigger
+                      trigger="click"
+                      placement="bottom"
+                      overlay={popover}
+                    >
+                      <button className="button">Summary</button>
+                    </OverlayTrigger>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

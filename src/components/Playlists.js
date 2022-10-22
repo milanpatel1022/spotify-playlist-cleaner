@@ -30,7 +30,6 @@ export function Playlist(props) {
       style: {
         color: "#1DB954",
         fontSize: "80%",
-        fontWeight: "bold",
         borderBottom: "solid black 2px",
         justifyContent: "center",
         alignItems: "center",
