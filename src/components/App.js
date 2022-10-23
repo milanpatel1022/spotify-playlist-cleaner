@@ -13,8 +13,7 @@ function App() {
   const REDIRECT_URI = "http://localhost:3000";
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
-  const SCOPE =
-    "playlist-read-private playlist-modify-private playlist-modify-public user-read-private";
+  const SCOPE = "playlist-read-private playlist-modify-public";
 
   const [token, setToken] = useState(""); //state variable for the token
 
@@ -28,12 +27,10 @@ function App() {
 
   const [progress, setProgress] = useState(0); //our progress bar needs to know the actual progress to output correctly
 
-  const [newPlaylist, setNewPlaylist] = useState(""); //display playlist in summary
+  const [newPlaylist, setNewPlaylist] = useState({ name: "", link: "" }); //display playlist in summary
 
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
-    // console.log(selectedPlaylist);
-
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
     console.log(token);
@@ -92,15 +89,31 @@ function App() {
 
   //we have the list of tracks. now we need to find the clean version of each one.
   const cleanTracks = async () => {
-    // console.log("in clean tracks");
     const cleanedTracks = [];
     const uncleanableTracks = []; //songs where no clean versions were found
 
-    console.log(tracks.length);
-
     setProgress(0);
 
-    //loop through each track
+    console.log(selectedPlaylist);
+
+    //create the new playlist
+    let user_id = selectedPlaylist[0].owner.id;
+    let playlist_name = `${selectedPlaylist[0].name} (clean)`;
+    let created_playlist = ""; //we will assign it to ID returned in response
+
+    await axios
+      .post(
+        `https://api.spotify.com/v1/users/${user_id}/playlists`,
+        { name: playlist_name },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => (created_playlist = response.data));
+
+    //loop through each track. try to find the clean version. add it to the new playlist.
     for (let i = 0; i < tracks.length; i++) {
       setProgress(Math.round((i / tracks.length) * 100));
       const track = tracks[i].track;
@@ -173,6 +186,20 @@ function App() {
             }
 
             //if we have gotten to this point, we have found the clean version of the same song
+            //add clean song to new playlist
+
+            let uri = result[i].uri;
+
+            axios.post(
+              `https://api.spotify.com/v1/playlists/${created_playlist.id}/tracks?uris=${uri}`,
+              {},
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
             cleanedTracks.push(result[i].name);
             found = true;
             break; //we don't need to keep looking through results. we can break early.
@@ -186,7 +213,10 @@ function App() {
     }
     setProgress(100);
     setInProgress(false);
-    setNewPlaylist(selectedPlaylist[0].name);
+    setNewPlaylist({
+      name: created_playlist.name,
+      link: created_playlist.external_urls.spotify,
+    });
     setSelectedPlaylist([]);
     setTracks([]);
 
@@ -248,10 +278,16 @@ function App() {
 
   const popover = (
     <Popover id="popover-basic">
-      <Popover.Header as="h3">Popover right</Popover.Header>
       <Popover.Body>
-        A clean version of your playlist has been created. {newPlaylist}{" "}
-        (clean).
+        A clean version of your playlist has been created!
+        <a
+          style={{ textDecoration: "none", color: "#1DB954" }}
+          href={newPlaylist.link}
+          target="_blank"
+        >
+          {" "}
+          {newPlaylist.name}
+        </a>
       </Popover.Body>
     </Popover>
   );
