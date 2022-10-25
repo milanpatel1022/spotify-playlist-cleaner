@@ -13,11 +13,14 @@ function App() {
   const REDIRECT_URI = "http://localhost:3000";
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
-  const SCOPE = "playlist-read-private playlist-modify-public";
+  const SCOPE =
+    "playlist-read-private playlist-modify-public playlist-modify-private";
 
   const [token, setToken] = useState(""); //state variable for the token
 
   const [playlists, setPlaylists] = useState([]); //state variable for the user's playlists
+
+  const [userID, setUserID] = useState(""); //state variable for user ID (will need ID to create playlists for them)
 
   const [selectedPlaylist, setSelectedPlaylist] = useState([]); //if user has made a selection
 
@@ -29,11 +32,14 @@ function App() {
 
   const [newPlaylist, setNewPlaylist] = useState({ name: "", link: "" }); //display playlist in summary
 
+  const [uncleanableTracks, setUncleanableTracks] = useState([]); //display uncleanable songs in summary
+
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
     const hash = window.location.hash;
     let token = window.localStorage.getItem("token");
     console.log(token);
+
     //if user is not already logged in, use the hash to extract the token
     if (!token && hash) {
       token = hash
@@ -57,14 +63,32 @@ function App() {
         .then((response) => setPlaylists(response.data.items))
         .catch(function (error) {
           //the token may be expired (causing axios 401 error) and the user may need to relogin.
-          console.log(error);
-          window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
-          setToken(""); //reset token so that user is forced to login again.
+          if (error.response.status === 401) {
+            window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+            setToken(""); //reset token so that user is forced to login again.
+          }
+        });
+    };
+
+    const getUserInfo = async () => {
+      await axios
+        .get("https://api.spotify.com/v1/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => setUserID(response.data.id))
+        .catch(function (error) {
+          if (error.response.status === 401) {
+            window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+            setToken(""); //reset token so that user is forced to login again.
+          }
         });
     };
 
     if (token) {
       getPlaylists();
+      getUserInfo();
     }
 
     setToken(token); //update token state so we know user is logged in
@@ -87,6 +111,25 @@ function App() {
     // console.log(state.selectedRows);
   };
 
+  const addSongsToPlaylist = async (created_playlist, uris) => {
+    await axios
+      .post(
+        `https://api.spotify.com/v1/playlists/${created_playlist.id}/tracks`,
+        { uris: uris },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .catch(function (error) {
+        if (error.response.status === 401) {
+          window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+          setToken(""); //reset token so that user is forced to login again.
+        }
+      });
+  };
+
   //we have the list of tracks. now we need to find the clean version of each one.
   const cleanTracks = async () => {
     const cleanedTracks = [];
@@ -94,16 +137,13 @@ function App() {
 
     setProgress(0);
 
-    console.log(selectedPlaylist);
-
     //create the new playlist
-    let user_id = selectedPlaylist[0].owner.id;
     let playlist_name = `${selectedPlaylist[0].name} (clean)`;
     let created_playlist = ""; //we will assign it to ID returned in response
 
     await axios
       .post(
-        `https://api.spotify.com/v1/users/${user_id}/playlists`,
+        `https://api.spotify.com/v1/users/${userID}/playlists`,
         { name: playlist_name },
         {
           headers: {
@@ -111,7 +151,13 @@ function App() {
           },
         }
       )
-      .then((response) => (created_playlist = response.data));
+      .then((response) => (created_playlist = response.data))
+      .catch(function (error) {
+        if (error.response.status === 401) {
+          window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+          setToken(""); //reset token so that user is forced to login again.
+        }
+      });
 
     //loop through each track. try to find the clean version. add it to the new playlist.
     for (let i = 0; i < tracks.length; i++) {
@@ -120,7 +166,7 @@ function App() {
 
       //if the track is already clean, we don't need to look for the clean version
       if (track.explicit === false) {
-        cleanedTracks.push(track.name);
+        cleanedTracks.push(track.uri);
         continue;
       }
 
@@ -135,12 +181,9 @@ function App() {
       //if there are multiple artists, we need to comma separate them for the query
       let artistQuery = Array.from(artists).join(", ");
 
-      // console.log(artistQuery);
-
       //now we can query Spotify's search endpoint using the track and artist names
       let search = `${trackName} ${artistQuery}`;
       let query = `q=${encodeURIComponent(search)}&type=track&limit=8`;
-      // console.log(query);
 
       await axios
         .get(`https://api.spotify.com/v1/search?${query}`, {
@@ -150,7 +193,6 @@ function App() {
         })
         .then((response) => {
           const result = response.data.tracks.items;
-          // console.log(trackName, result);
 
           //using response from API, determine if clean version of song can be found
           let found = false;
@@ -188,19 +230,7 @@ function App() {
             //if we have gotten to this point, we have found the clean version of the same song
             //add clean song to new playlist
 
-            let uri = result[i].uri;
-
-            axios.post(
-              `https://api.spotify.com/v1/playlists/${created_playlist.id}/tracks?uris=${uri}`,
-              {},
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-            cleanedTracks.push(result[i].name);
+            cleanedTracks.push(result[i].uri);
             found = true;
             break; //we don't need to keep looking through results. we can break early.
           }
@@ -209,16 +239,34 @@ function App() {
           if (found === false) {
             uncleanableTracks.push(trackName);
           }
+        })
+        .catch(function (error) {
+          if (error.response.status === 401) {
+            window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+            setToken(""); //reset token so that user is forced to login again.
+          }
         });
     }
-    setProgress(100);
-    setInProgress(false);
+
+    //Spotify API only allows 100 songs to be added per request, so we need to make multiple if needed
+    let requestsNeeded = Math.ceil(cleanedTracks.length / 100);
+    for (let i = 0; i < requestsNeeded; i++) {
+      let offset = i * 100;
+      addSongsToPlaylist(
+        created_playlist,
+        cleanedTracks.slice(offset, offset + 100)
+      );
+    }
+    setProgress(100); //done cleaning
+    setInProgress(false); //no need to show progress bar anymore
     setNewPlaylist({
       name: created_playlist.name,
       link: created_playlist.external_urls.spotify,
-    });
-    setSelectedPlaylist([]);
-    setTracks([]);
+    }); //name and link to new playlist we have created
+
+    setUncleanableTracks(uncleanableTracks); //need to notify user which songs we couldn't find a clean version for
+    setSelectedPlaylist([]); //reset states
+    setTracks([]); //reset states
 
     console.log("cleaned tracks", cleanedTracks);
     console.log("uncleanable tracks", uncleanableTracks);
@@ -258,7 +306,6 @@ function App() {
           trackList.push(...response.data.items);
         })
         .catch(function (error) {
-          console.log(error);
           window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
           setToken(""); //reset token so that user is forced to login again.
         });
@@ -288,6 +335,19 @@ function App() {
           {" "}
           {newPlaylist.name}
         </a>
+        {uncleanableTracks.length !== 0 ? (
+          <div>
+            <p></p>
+            <div>
+              Clean versions of the following songs were not found:
+              <ul>
+                {uncleanableTracks.map(function (item, i) {
+                  return <li key={i}>{item}</li>;
+                })}
+              </ul>
+            </div>
+          </div>
+        ) : null}
       </Popover.Body>
     </Popover>
   );
