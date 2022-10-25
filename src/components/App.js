@@ -4,6 +4,7 @@ import axios from "axios"; //axios will help us handle HTTP requests to Spotify 
 import { Playlist } from "./Playlists";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Popover from "react-bootstrap/Popover";
+import { Footer } from "./Footer";
 
 function App() {
   /*Info needed to authenticate with Spotify
@@ -417,6 +418,7 @@ function App() {
           </div>
         </div>
       ) : null}
+      <Footer />
     </div>
   );
 }

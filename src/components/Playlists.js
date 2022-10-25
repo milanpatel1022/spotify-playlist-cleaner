@@ -1,10 +1,7 @@
-import axios from "axios"; //axios will help us handle HTTP requests to Spotify API
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DataTable from "react-data-table-component";
 
 export function Playlist(props) {
-  const [tracks, setTracks] = useState([]);
-
   //columns for our Playlist Table
   const columns = [
     {
