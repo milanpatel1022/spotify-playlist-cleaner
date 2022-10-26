@@ -159,7 +159,15 @@ function App() {
     setProgress(0);
 
     //create the new playlist
-    let playlist_name = `${selectedPlaylist[0].name} (clean)`;
+    let old_playlist_name = selectedPlaylist[0].name;
+
+    //Spotify playlist names have character limit of 200.
+    //Since we want to append "(clean)" to the end of it, we need to make sure there is enough space
+    if (old_playlist_name.length > 192) {
+      old_playlist_name = old_playlist_name.slice(0, 192);
+    }
+    console.log(old_playlist_name.length);
+    let playlist_name = `${old_playlist_name} (clean)`;
     let created_playlist = await createPlaylist(playlist_name); //we will assign it to ID returned in response
 
     //loop through each track. try to find the clean version. add it to the new playlist.
@@ -267,7 +275,13 @@ function App() {
 
     //if there were uncleanable tracks, create a playlist for those
     if (uncleanableTracks.length > 0) {
-      let playlist_name = `${selectedPlaylist[0].name} (dirty)`;
+      let old_playlist_name = selectedPlaylist[0].name;
+
+      if (old_playlist_name.length > 192) {
+        old_playlist_name = old_playlist_name.slice(0, 192);
+      }
+      console.log(old_playlist_name.length);
+      let playlist_name = `${old_playlist_name} (dirty)`;
       let created_playlist = await createPlaylist(playlist_name);
       let requestsNeeded = Math.ceil(uncleanableTracks.length / 100);
       for (let i = 0; i < requestsNeeded; i++) {
@@ -301,7 +315,7 @@ function App() {
     }
 
     //reset dirty state just in case from previous clean
-    setDirtyPlaylist({});
+    setDirtyPlaylist({ name: "", link: "" });
 
     //API only returns 100 songs max per request. Some playlists can have more than 100 songs.
     //So, we may need to make multiple requests. (Number of tracks in playlist / 100) rounded up is how many calls.
@@ -358,7 +372,7 @@ function App() {
           {" "}
           {cleanPlaylist.name}
         </a>
-        {dirtyPlaylist !== {} ? (
+        {dirtyPlaylist.name !== "" ? (
           <div>
             <p></p>
             Songs whose clean versions were not found have been stored in the
