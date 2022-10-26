@@ -3,12 +3,7 @@ import "./Modal.css";
 
 export function MyVerticallyCenteredModal(props) {
   return (
-    <Modal
-      {...props}
-      size="lg"
-      aria-labelledby="contained-modal-title-vcenter"
-      centered
-    >
+    <Modal {...props} aria-labelledby="contained-modal-title-vcenter" centered>
       <Modal.Header closeButton>
         <Modal.Title className="title" id="contained-modal-title-vcenter">
           FAQ

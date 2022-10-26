@@ -54,14 +54,13 @@ h1,
   border-radius: 5px;
   background-color: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(5px);
-  min-width: 25em;
+  min-width: 20em;
   margin-top: 1em;
   border: 2px solid;
 }
 
 .playlistTable {
   display: inline-block;
-  margin-right: 1em;
   /* width: 50%; */
   /* width: 295px; */
   /* margin-right: 5em; */
@@ -123,7 +122,7 @@ h3,
 }
 
 .selected {
-  background-color: #1ed760;
+  /* background-color: #1ed760; */
 }
 
 .showProgress {
