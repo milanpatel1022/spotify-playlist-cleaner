@@ -31,9 +31,9 @@ function App() {
 
   const [progress, setProgress] = useState(0); //our progress bar needs to know the actual progress to output correctly
 
-  const [newPlaylist, setNewPlaylist] = useState({ name: "", link: "" }); //display playlist in summary
+  const [cleanPlaylist, setCleanPlaylist] = useState({ name: "", link: "" }); //display playlist in summary
 
-  const [uncleanableTracks, setUncleanableTracks] = useState([]); //display uncleanable songs in summary
+  const [dirtyPlaylist, setDirtyPlaylist] = useState({ name: "", link: "" }); //display dirty playlist in summary
 
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
@@ -131,18 +131,8 @@ function App() {
       });
   };
 
-  //we have the list of tracks. now we need to find the clean version of each one.
-  const cleanTracks = async () => {
-    const cleanedTracks = [];
-    const uncleanableTracks = []; //songs where no clean versions were found
-
-    setProgress(0);
-
-    //create the new playlist
-    let playlist_name = `${selectedPlaylist[0].name} (clean)`;
-    let created_playlist = ""; //we will assign it to ID returned in response
-
-    await axios
+  const createPlaylist = async (playlist_name) => {
+    let response = await axios
       .post(
         `https://api.spotify.com/v1/users/${userID}/playlists`,
         { name: playlist_name },
@@ -152,13 +142,25 @@ function App() {
           },
         }
       )
-      .then((response) => (created_playlist = response.data))
       .catch(function (error) {
         if (error.response.status === 401) {
           window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
           setToken(""); //reset token so that user is forced to login again.
         }
       });
+    return response.data;
+  };
+
+  //we have the list of tracks. now we need to find the clean version of each one.
+  const cleanTracks = async () => {
+    const cleanedTracks = [];
+    const uncleanableTracks = []; //songs where no clean versions were found
+
+    setProgress(0);
+
+    //create the new playlist
+    let playlist_name = `${selectedPlaylist[0].name} (clean)`;
+    let created_playlist = await createPlaylist(playlist_name); //we will assign it to ID returned in response
 
     //loop through each track. try to find the clean version. add it to the new playlist.
     for (let i = 0; i < tracks.length; i++) {
@@ -238,7 +240,7 @@ function App() {
 
           //if we have exited the for loop and didn't find a clean version, add the track to the uncleanable list
           if (found === false) {
-            uncleanableTracks.push(trackName);
+            uncleanableTracks.push(track.uri);
           }
         })
         .catch(function (error) {
@@ -258,14 +260,31 @@ function App() {
         cleanedTracks.slice(offset, offset + 100)
       );
     }
-    setProgress(100); //done cleaning
-    setInProgress(false); //no need to show progress bar anymore
-    setNewPlaylist({
+    setCleanPlaylist({
       name: created_playlist.name,
       link: created_playlist.external_urls.spotify,
     }); //name and link to new playlist we have created
 
-    setUncleanableTracks(uncleanableTracks); //need to notify user which songs we couldn't find a clean version for
+    //if there were uncleanable tracks, create a playlist for those
+    if (uncleanableTracks.length > 0) {
+      let playlist_name = `${selectedPlaylist[0].name} (dirty)`;
+      let created_playlist = await createPlaylist(playlist_name);
+      let requestsNeeded = Math.ceil(uncleanableTracks.length / 100);
+      for (let i = 0; i < requestsNeeded; i++) {
+        let offset = i * 100;
+        addSongsToPlaylist(
+          created_playlist,
+          uncleanableTracks.slice(offset, offset + 100)
+        );
+      }
+      setDirtyPlaylist({
+        name: playlist_name,
+        link: created_playlist.external_urls.spotify,
+      }); //name and link to new playlist we have created
+    }
+
+    setProgress(100); //done cleaning
+    setInProgress(false); //no need to show progress bar anymore
     setSelectedPlaylist([]); //reset states
     setTracks([]); //reset states
 
@@ -280,6 +299,9 @@ function App() {
       console.log("no playlist selected");
       return;
     }
+
+    //reset dirty state just in case from previous clean
+    setDirtyPlaylist({});
 
     //API only returns 100 songs max per request. Some playlists can have more than 100 songs.
     //So, we may need to make multiple requests. (Number of tracks in playlist / 100) rounded up is how many calls.
@@ -330,23 +352,25 @@ function App() {
         A clean version of your playlist has been created!
         <a
           style={{ textDecoration: "none", color: "#1DB954" }}
-          href={newPlaylist.link}
+          href={cleanPlaylist.link}
           target="_blank"
         >
           {" "}
-          {newPlaylist.name}
+          {cleanPlaylist.name}
         </a>
-        {uncleanableTracks.length !== 0 ? (
+        {dirtyPlaylist !== {} ? (
           <div>
             <p></p>
-            <div>
-              Clean versions of the following songs were not found:
-              <ul>
-                {uncleanableTracks.map(function (item, i) {
-                  return <li key={i}>{item}</li>;
-                })}
-              </ul>
-            </div>
+            Songs whose clean versions were not found have been stored in the
+            following playlist:
+            <a
+              style={{ textDecoration: "none", color: "#1DB954" }}
+              href={dirtyPlaylist.link}
+              target="_blank"
+            >
+              {" "}
+              {dirtyPlaylist.name}
+            </a>
           </div>
         ) : null}
       </Popover.Body>
