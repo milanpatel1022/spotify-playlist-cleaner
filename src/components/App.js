@@ -11,7 +11,8 @@ function App() {
     -> Endpoint, Client ID, Redirect URI once authenticated, Response type, what scopes our app wants authorization for
   */
   const CLIENT_ID = "a95ddc783a0549ab9f1b71bcd94692db";
-  const REDIRECT_URI = "https://main.d171gbcw9k44vf.amplifyapp.com/";
+  const REDIRECT_URI = "https://main.d171gbcw9k44vf.amplifyapp.com/"; //production
+  // const REDIRECT_URI = "http://localhost:3000"; //development
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
   const SCOPE =
@@ -35,6 +36,27 @@ function App() {
 
   const [dirtyPlaylist, setDirtyPlaylist] = useState({ name: "", link: "" }); //display dirty playlist in summary
 
+  //if the user is logged in, use Axios to make GET requests to playlists and user endpoint
+  const getPlaylists = async (offset, token) => {
+    let response = await axios
+      .get(
+        `https://api.spotify.com/v1/me/playlists?limit=20&offset=${offset}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .catch(function (error) {
+        //the token may be expired (causing axios 401 error) and the user may need to relogin.
+        if (error.response.status === 401) {
+          window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+          setToken(""); //reset token so that user is forced to login again.
+        }
+      });
+    return response.data.items;
+  };
+
   //useEffect is called on the 1st render and after Spotify redirects user back to our app (causes a refresh)
   useEffect(() => {
     const hash = window.location.hash;
@@ -53,24 +75,6 @@ function App() {
       window.localStorage.setItem("token", token);
     }
 
-    //if the user is logged in, use Axios to make GET requests to playlists and user endpoint
-    const getPlaylists = async () => {
-      await axios
-        .get("https://api.spotify.com/v1/me/playlists", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => setPlaylists(response.data.items))
-        .catch(function (error) {
-          //the token may be expired (causing axios 401 error) and the user may need to relogin.
-          if (error.response.status === 401) {
-            window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
-            setToken(""); //reset token so that user is forced to login again.
-          }
-        });
-    };
-
     const getUserInfo = async () => {
       await axios
         .get("https://api.spotify.com/v1/me", {
@@ -87,8 +91,26 @@ function App() {
         });
     };
 
+    const get_all_playlists = async () => {
+      if (token) {
+        let offset = 0;
+        let all_playlists = [];
+        while (true) {
+          let current_playlists = await getPlaylists(offset, token);
+          console.log(current_playlists);
+          all_playlists.push(...current_playlists);
+          if (current_playlists.length !== 20) {
+            break;
+          }
+          offset += 20;
+        }
+        setPlaylists(all_playlists);
+      }
+    };
+
+    get_all_playlists();
+
     if (token) {
-      getPlaylists();
       getUserInfo();
     }
 
