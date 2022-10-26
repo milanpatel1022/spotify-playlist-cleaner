@@ -40,7 +40,7 @@ function App() {
   const getPlaylists = async (offset, token) => {
     let response = await axios
       .get(
-        `https://api.spotify.com/v1/me/playlists?limit=20&offset=${offset}`,
+        `https://api.spotify.com/v1/me/playlists?limit=50&offset=${offset}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -52,6 +52,8 @@ function App() {
         if (error.response.status === 401) {
           window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
           setToken(""); //reset token so that user is forced to login again.
+        } else if (error.response.status === 403) {
+          console.log("bad oauth request. reauth won't help");
         }
       });
     return response.data.items;
@@ -87,22 +89,24 @@ function App() {
           if (error.response.status === 401) {
             window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
             setToken(""); //reset token so that user is forced to login again.
+          } else if (error.response.status === 403) {
+            console.log("bad oauth request. reauth won't help");
           }
         });
     };
 
+    //Spotify API only lets you get up to 50 playlists of a user. We may need to make multiple calls if they have more
     const get_all_playlists = async () => {
       if (token) {
         let offset = 0;
         let all_playlists = [];
         while (true) {
           let current_playlists = await getPlaylists(offset, token);
-          console.log(current_playlists);
           all_playlists.push(...current_playlists);
-          if (current_playlists.length !== 20) {
+          if (current_playlists.length !== 50) {
             break;
           }
-          offset += 20;
+          offset += 50;
         }
         setPlaylists(all_playlists);
       }
@@ -149,6 +153,8 @@ function App() {
         if (error.response.status === 401) {
           window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
           setToken(""); //reset token so that user is forced to login again.
+        } else if (error.response.status === 403) {
+          console.log("bad oauth request. reauth won't help");
         }
       });
   };
@@ -168,6 +174,8 @@ function App() {
         if (error.response.status === 401) {
           window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
           setToken(""); //reset token so that user is forced to login again.
+        } else if (error.response.status === 403) {
+          console.log("bad oauth request. reauth won't help");
         }
       });
     return response.data;
@@ -277,6 +285,8 @@ function App() {
           if (error.response.status === 401) {
             window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
             setToken(""); //reset token so that user is forced to login again.
+          } else if (error.response.status === 403) {
+            console.log("bad oauth request. reauth won't help");
           }
         });
     }
@@ -365,8 +375,12 @@ function App() {
           trackList.push(...response.data.items);
         })
         .catch(function (error) {
-          window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
-          setToken(""); //reset token so that user is forced to login again.
+          if (error.response.status === 401) {
+            window.localStorage.removeItem("token"); //remove from localstorage so expired token isn't reused
+            setToken(""); //reset token so that user is forced to login again.
+          } else if (error.response.status === 403) {
+            console.log("bad oauth request. reauth won't help");
+          }
         });
     }
     setTracks(trackList);
