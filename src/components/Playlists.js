@@ -49,6 +49,7 @@ export function Playlist(props) {
     <DataTable
       columns={columns}
       data={data}
+      noDataComponent="You do not have access to this app."
       selectableRows //need to add styling to these so they stay in div. they are going off screen.
       selectableRowsSingle
       selectableRowsComponentProps={{ type: "radio" }}
