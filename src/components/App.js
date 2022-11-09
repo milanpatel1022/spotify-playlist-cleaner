@@ -15,8 +15,7 @@ function App() {
   // const REDIRECT_URI = "http://localhost:3000"; //development
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
-  const SCOPE =
-    "playlist-read-private playlist-modify-public playlist-modify-private";
+  const SCOPE = "playlist-read-private playlist-modify-public";
 
   const [token, setToken] = useState(""); //state variable for the token
 
