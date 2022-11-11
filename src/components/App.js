@@ -11,8 +11,8 @@ function App() {
     -> Endpoint, Client ID, Redirect URI once authenticated, Response type, what scopes our app wants authorization for
   */
   const CLIENT_ID = "a95ddc783a0549ab9f1b71bcd94692db";
-  const REDIRECT_URI = "https://main.d171gbcw9k44vf.amplifyapp.com/"; //production
-  // const REDIRECT_URI = "http://localhost:3000"; //development
+  // const REDIRECT_URI = "https://main.d171gbcw9k44vf.amplifyapp.com/"; //production
+  const REDIRECT_URI = "http://localhost:3000"; //development
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
   const SCOPE = "playlist-read-private playlist-modify-public";
@@ -101,6 +101,7 @@ function App() {
         let all_playlists = [];
         while (true) {
           let current_playlists = await getPlaylists(offset, token);
+          console.log(current_playlists);
           all_playlists.push(...current_playlists);
           if (current_playlists.length !== 50) {
             break;
@@ -192,11 +193,11 @@ function App() {
 
     //Spotify playlist names have character limit of 200.
     //Since we want to append "(clean)" to the end of it, we need to make sure there is enough space
-    if (old_playlist_name.length > 192) {
-      old_playlist_name = old_playlist_name.slice(0, 192);
+    if (old_playlist_name.length > 189) {
+      old_playlist_name = old_playlist_name.slice(0, 189);
     }
     console.log(old_playlist_name.length);
-    let playlist_name = `${old_playlist_name} (clean)`;
+    let playlist_name = `${old_playlist_name}... (clean)`;
     let created_playlist = await createPlaylist(playlist_name); //we will assign it to ID returned in response
 
     //loop through each track. try to find the clean version. add it to the new playlist.
@@ -308,11 +309,11 @@ function App() {
     if (uncleanableTracks.length > 0) {
       let old_playlist_name = selectedPlaylist[0].name;
 
-      if (old_playlist_name.length > 192) {
-        old_playlist_name = old_playlist_name.slice(0, 192);
+      if (old_playlist_name.length > 189) {
+        old_playlist_name = old_playlist_name.slice(0, 189);
       }
       console.log(old_playlist_name.length);
-      let playlist_name = `${old_playlist_name} (dirty)`;
+      let playlist_name = `${old_playlist_name}... (dirty)`;
       let created_playlist = await createPlaylist(playlist_name);
       let requestsNeeded = Math.ceil(uncleanableTracks.length / 100);
       for (let i = 0; i < requestsNeeded; i++) {

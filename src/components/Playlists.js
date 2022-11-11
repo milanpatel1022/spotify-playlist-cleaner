@@ -1,14 +1,29 @@
-import { useState } from "react";
 import DataTable from "react-data-table-component";
+import "./Playlists.css";
 
 export function Playlist(props) {
   //columns for our Playlist Table
   const columns = [
     {
-      //if they don't have a username, just replace it with "Your"
-      // name: username !== null ? `${username}'s Playlists` : "Your",
       name: "Your Playlists",
-      selector: (row) => row.name,
+      cell: (row) => {
+        return (
+          <a
+            style={{
+              textDecoration: "none",
+              textAlign: "left",
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              color: "black",
+            }}
+            target="_blank"
+            href={row.external_urls.spotify}
+          >
+            {row.name}
+          </a>
+        );
+      },
     },
   ];
 
