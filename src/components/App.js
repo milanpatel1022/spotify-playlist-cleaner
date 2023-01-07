@@ -11,8 +11,8 @@ function App() {
     -> Endpoint, Client ID, Redirect URI once authenticated, Response type, what scopes our app wants authorization for
   */
   const CLIENT_ID = "a95ddc783a0549ab9f1b71bcd94692db";
-  // const REDIRECT_URI = "https://main.d171gbcw9k44vf.amplifyapp.com/"; //production
-  const REDIRECT_URI = "http://localhost:3000"; //development
+  const REDIRECT_URI = "https://main.d171gbcw9k44vf.amplifyapp.com/"; //production
+  // const REDIRECT_URI = "http://localhost:3000"; //development
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
   const SCOPE = "playlist-read-private playlist-modify-public";
