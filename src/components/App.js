@@ -194,10 +194,10 @@ function App() {
     //Spotify playlist names have character limit of 200.
     //Since we want to append "(clean)" to the end of it, we need to make sure there is enough space
     if (old_playlist_name.length > 189) {
-      old_playlist_name = old_playlist_name.slice(0, 189);
+      old_playlist_name = old_playlist_name.slice(0, 189) + "...";
     }
     console.log(old_playlist_name.length);
-    let playlist_name = `${old_playlist_name}... (clean)`;
+    let playlist_name = `${old_playlist_name} (clean)`;
     let created_playlist = await createPlaylist(playlist_name); //we will assign it to ID returned in response
 
     //loop through each track. try to find the clean version. add it to the new playlist.
@@ -310,10 +310,10 @@ function App() {
       let old_playlist_name = selectedPlaylist[0].name;
 
       if (old_playlist_name.length > 189) {
-        old_playlist_name = old_playlist_name.slice(0, 189);
+        old_playlist_name = old_playlist_name.slice(0, 189) + "...";
       }
       console.log(old_playlist_name.length);
-      let playlist_name = `${old_playlist_name}... (dirty)`;
+      let playlist_name = `${old_playlist_name} (dirty)`;
       let created_playlist = await createPlaylist(playlist_name);
       let requestsNeeded = Math.ceil(uncleanableTracks.length / 100);
       for (let i = 0; i < requestsNeeded; i++) {
