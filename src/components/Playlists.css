@@ -1,3 +1,15 @@
 a:hover {
   color: #1ed760 !important;
 }
+
+.tableHeader {
+  margin-bottom: 0.5em;
+  vertical-align: middle;
+  font-weight: bold;
+}
+
+.spotify_icon {
+  max-width: 1.5em;
+  height: 100%;
+  float: left;
+}

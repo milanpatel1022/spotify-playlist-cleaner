@@ -61,18 +61,26 @@ export function Playlist(props) {
   };
 
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      noDataComponent="You do not have access to this app."
-      selectableRows //need to add styling to these so they stay in div. they are going off screen.
-      selectableRowsSingle
-      selectableRowsComponentProps={{ type: "radio" }}
-      onSelectedRowsChange={props.handleRowSelected}
-      pagination
-      paginationComponentOptions={{ noRowsPerPage: true }}
-      paginationRowsPerPageOptions={[10]}
-      customStyles={customStyles}
-    />
+    <div>
+      <div className="tableHeader">
+        <img className="spotify_icon" src="../spotify_icon.png"></img>
+        <div> Your Playlists</div>
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={data}
+        noDataComponent="You do not have access to this app."
+        selectableRows //need to add styling to these so they stay in div. they are going off screen.
+        selectableRowsSingle
+        selectableRowsComponentProps={{ type: "radio" }}
+        onSelectedRowsChange={props.handleRowSelected}
+        pagination
+        paginationComponentOptions={{ noRowsPerPage: true }}
+        paginationRowsPerPageOptions={[10]}
+        customStyles={customStyles}
+        noTableHead={true}
+      />
+    </div>
   );
 }
